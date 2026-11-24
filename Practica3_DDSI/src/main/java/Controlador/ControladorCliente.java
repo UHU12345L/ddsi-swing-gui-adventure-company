@@ -2,10 +2,13 @@ package Controlador;
 
 import Modelo.Cliente;
 import Modelo.ClienteDAO;
+import Vista.GestionTablasCliente;
 import Vista.VistaCliente;
+import Vista.VistaGestionClientes;
 import Vista.VistaMensajes;
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.List;
 import java.util.Scanner;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
@@ -22,14 +25,51 @@ public class ControladorCliente {
     private final VistaCliente vistaCliente;
     private final VistaMensajes vistaMensajes;
     private final Scanner teclado;
+    private final VistaGestionClientes vClientes;   // panel con el JTable de clientes
     
-    ControladorCliente(SessionFactory sessionFactory){
+    ControladorCliente(SessionFactory sessionFactory, VistaGestionClientes vClientes){
         this.sessionFactory = sessionFactory;
+        this.vClientes = vClientes;
         this.clienteDAO = new ClienteDAO();
         this.vistaCliente = new VistaCliente();
        this.vistaMensajes = new VistaMensajes();
         this.teclado = new Scanner(System.in);
-        menu(); 
+        //menu();   // el menú de consola ya no se usa: ahora todo va por la ventana
+        GestionTablasCliente.inicializarTablaClientes(vClientes);   // el modelo se crea una sola vez
+    }
+
+    /**
+     * Prepara el panel de clientes: configura la tabla y la rellena con los datos de la BD.
+     * Se llama cada vez que se abre Gestión de Clientes desde el menú.
+     */
+    public void InicializarVista() {
+        GestionTablasCliente.dibujarTablaClientes(vClientes);
+        refrescaTablaClientes();
+    }
+
+    /**
+     * Pide al DAO todos los clientes y los vuelca en la tabla.
+     */
+    private void refrescaTablaClientes() {
+        Session sesion = null;
+        Transaction tr = null;
+        try {
+            sesion = sessionFactory.openSession();
+            tr = sesion.beginTransaction();
+            List<Cliente> lClientes = clienteDAO.listaClientes(sesion);
+            GestionTablasCliente.vaciarTablaClientes();         // se borran las filas anteriores
+            GestionTablasCliente.rellenarTablaClientes(lClientes);
+            tr.commit();
+        } catch (Exception ex) {
+            if (tr != null && tr.isActive()) {
+                tr.rollback();
+            }
+            vistaMensajes.Mensaje(null, "Error en la petición de clientes\n" + ex.getMessage(), "AVISO", "error");
+        } finally {
+            if (sesion != null && sesion.isOpen()) {
+                sesion.close();
+            }
+        }
     }
     
     private void menu(){

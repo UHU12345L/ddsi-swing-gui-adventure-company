@@ -14,4 +14,8 @@ public class GuiaDAO {
         Guia guia=sesion.createNamedQuery("Guia.findByEmail", Guia.class).setParameter("email",email).getSingleResult();
         guia.setTelefono(telefono);      
     }
+    //lista todos los guias (para la tabla)
+    public List<Guia> listaGuias(Session sesion){
+        return sesion.createNamedQuery("Guia.findAll", Guia.class).getResultList();
+    }
 }

@@ -29,4 +29,8 @@ public class ClienteDAO {
         }
         return String.format("CL%03d",siguiente);
     }
+    //lista todos los clientes (para la tabla)
+    public List<Cliente> listaClientes(Session sesion){
+        return sesion.createNamedQuery("Cliente.findAll", Cliente.class).getResultList();
+    }
 }

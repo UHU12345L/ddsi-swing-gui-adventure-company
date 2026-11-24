@@ -15,13 +15,17 @@ import org.hibernate.SessionFactory;
 
 public class ControladorPrincipal implements ActionListener {
 
-    private final SessionFactory sessionFactory;   // se usará en las partes siguientes
+    private final SessionFactory sessionFactory;
     private final VistaPrincipal vPrincipal;
     private final VistaInicio vInicio;
     private final VistaGestionAventuras vAventura;
     private final VistaGestionClientes vCliente;
     private final VistaGestionGuias vGuia;
     private CardLayout cardLayout;
+    // Un controlador por cada panel de gestión
+    private final ControladorCliente controladorCliente;
+    private final ControladorGuia controladorGuia;
+    private final ControladorAventura controladorAventura;
 
     /**
      * Crea la ventana principal con sus paneles y la muestra.
@@ -35,6 +39,11 @@ public class ControladorPrincipal implements ActionListener {
         vCliente = new VistaGestionClientes();
         vGuia = new VistaGestionGuias();
 
+        // Cada controlador recibe la SessionFactory y su panel (y crea el modelo de su tabla)
+        controladorCliente = new ControladorCliente(sessionFactory, vCliente);
+        controladorGuia = new ControladorGuia(sessionFactory, vGuia);
+        controladorAventura = new ControladorAventura(sessionFactory, vAventura);
+
         // CardLayout: los paneles, como cartas, en la misma zona de la ventana
         cardLayout = new CardLayout();
         vPrincipal.getContentPane().setLayout(cardLayout);
@@ -46,7 +55,7 @@ public class ControladorPrincipal implements ActionListener {
         addListeners();
 
         muestraPanel("Inicio");                     // al arrancar, el panel de inicio
-        vPrincipal.setSize(800, 600);               // tamaño de la ventana
+        vPrincipal.setSize(1000, 600);              // tamaño de la ventana (más ancha para que quepan las tablas)
         vPrincipal.setLocationRelativeTo(null);     // centrada
         vPrincipal.setVisible(true);                // se muestra al final
     }
@@ -77,12 +86,15 @@ public class ControladorPrincipal implements ActionListener {
                 muestraPanel("Inicio");
                 break;
             case "GestionAventuras":
+                controladorAventura.InicializarVista();   // se cargan los datos antes de mostrar el panel
                 muestraPanel("Aventuras");
                 break;
             case "GestionClientes":
+                controladorCliente.InicializarVista();
                 muestraPanel("Clientes");
                 break;
             case "GestionGuias":
+                controladorGuia.InicializarVista();
                 muestraPanel("Guias");
                 break;
             case "SalirAplicacion":
